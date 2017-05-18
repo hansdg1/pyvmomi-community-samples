@@ -8,7 +8,7 @@ Example script to configure Auto Restart Settings for Esxi Host
 and also enable the auto restart settings of virtual machines
 (which are powered on at the time of script execution)
 running on the host in a random order.
-This scrpt can be tailored to adjust more settings within
+This script can be tailored to adjust more settings within
 """
 import argparse
 import sys
@@ -39,6 +39,12 @@ def get_hosts(conn):
     obj = [host for host in container.view]
     return obj
 
+def get_hosts2(conn):
+    print "Getting All hosts Objects"
+    content = conn.RetrieveContent()
+    container = content.viewManager.CreateContainerView(content.rootFolder, [vim.host.AutoStartManager], )
+    obj = [host for host in container.view]
+    return obj
 
 def action_hosts(commaList, connection, defstartdelay):
     print "Actioning the Provided Hosts"
@@ -47,11 +53,14 @@ def action_hosts(commaList, connection, defstartdelay):
     host_names = [h.name for h in allhosts]
     for a in acthosts:
         if a not in host_names:
-            print "The host cant be found " + a
+            print "The host can't be found " + a
 
     for h in allhosts:
         if h.name in acthosts:
             enable_autorestart(h, defstartdelay)
+            # get_autostart_status(h.)
+
+
 
 
 def enable_autorestart(host, defstartdelay):
@@ -90,26 +99,31 @@ def enable_autorestart(host, defstartdelay):
             print "Apply Setting to Host"
             host.configManager.autoStartManager.ReconfigureAutostart(spec)
 
+
+def get_autostart_status(vm):
+    status = vm.
+
+
 # MAIN
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-ip', '--ipadd',
                     required=True,
                     action='store',
-                    help='Vsphere ESXI ip address')
+                    help='vSphere ESXi ip address')
 parser.add_argument('-u', '--user',
                     required=True,
                     action='store',
-                    help='Vsphere ESXI username')
+                    help='vSphere ESXi username')
 parser.add_argument('-p', '--password',
                     required=False,
                     action='store',
-                    help='Vsphere ESXI password')
+                    help='vSphere ESXi password')
 parser.add_argument('-a', '--listallhosts',
                     required=False, action='store_true')
 parser.add_argument(
     '-t', '--actionhosts',
-    help='Comma delimeted list of VHosts which needs to be actioned',
+    help='Comma delimited list of VHosts which needs to be actioned',
     required=False, action='store')
 parser.add_argument(
     '-d', '--defstartdelay', help='Default Startup Delay',
@@ -123,10 +137,12 @@ connection = get_connection(
     args.ipadd, args.user, args.password)
 
 if args.listallhosts is True:
-    vSpherehosts = get_hosts(connection)
+    # vSpherehosts = get_hosts(connection)
+    vSpherehosts = get_hosts2(connection)
     print "All the Hosts Attached are :\n"
     for hosts in vSpherehosts:
-        print "\n" + hosts.name
+        print "\n" + hosts.Config
+        # print "\n" + hosts
 
 if args.actionhosts is not None:
     action_hosts(
